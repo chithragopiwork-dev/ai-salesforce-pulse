@@ -30,8 +30,10 @@ export function DashboardLayout() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
-        <main className="flex-1 p-6 overflow-auto bg-background">
-          <Outlet context={{ searchQuery }} />
+        <main className="flex-1 p-6 overflow-auto bg-background bg-dot-pattern">
+          <div className="animate-page-in">
+            <Outlet context={{ searchQuery }} />
+          </div>
         </main>
       </div>
     </div>
