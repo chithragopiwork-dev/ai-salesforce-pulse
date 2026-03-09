@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,31 +6,31 @@
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 25% 10%;
+    --background: 225 15% 97%;
+    --foreground: 222 30% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 222 30% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover-foreground: 222 30% 11%;
 
-    --primary: 217 91% 50%;
+    --primary: 213 68% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 25% 10%;
+    --secondary: 225 14% 95%;
+    --secondary-foreground: 222 30% 11%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 225 14% 95%;
+    --muted-foreground: 222 10% 46%;
 
-    --accent: 217 91% 50%;
+    --accent: 213 68% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
+    --success: 152 60% 40%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
@@ -39,23 +39,36 @@
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 217 91% 50%;
+    --border: 225 13% 90%;
+    --input: 225 13% 90%;
+    --ring: 213 68% 45%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 220 25% 11%;
-    --sidebar-foreground: 220 14% 80%;
-    --sidebar-primary: 217 91% 60%;
+    /* Sidebar: dark navy #0f1623 = hsl(222, 38%, 10%) */
+    --sidebar-background: 222 38% 10%;
+    --sidebar-foreground: 220 14% 75%;
+    --sidebar-primary: 213 68% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 16%;
+    --sidebar-accent: 222 30% 15%;
     --sidebar-accent-foreground: 220 14% 90%;
-    --sidebar-border: 220 20% 18%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-border: 222 25% 17%;
+    --sidebar-ring: 213 68% 55%;
 
     --font-sans: 'Inter', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+
+    /* RAG colors */
+    --rag-red: 0 72% 51%;
+    --rag-amber: 38 92% 50%;
+    --rag-green: 152 60% 40%;
+
+    /* Chart palette */
+    --chart-1: 213 68% 45%;
+    --chart-2: 152 60% 40%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 262 52% 47%;
   }
 }
 
@@ -68,4 +81,23 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-family: var(--font-sans);
   }
+}
+
+/* Pulse animation for connection dot */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Smooth card highlight on data update */
+@keyframes card-highlight {
+  0% { box-shadow: 0 0 0 0 hsl(213 68% 45% / 0.4); }
+  70% { box-shadow: 0 0 0 6px hsl(213 68% 45% / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(213 68% 45% / 0); }
+}
+.animate-card-highlight {
+  animation: card-highlight 0.8s ease-out;
 }
