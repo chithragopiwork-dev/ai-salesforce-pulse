@@ -12,6 +12,7 @@ import Leave from "./pages/Leave";
 import Risks from "./pages/Risks";
 import Updates from "./pages/Updates";
 import NotFound from "./pages/NotFound";
+import Describe from "./pages/Describe";
 
 const queryClient = new QueryClient();
 
