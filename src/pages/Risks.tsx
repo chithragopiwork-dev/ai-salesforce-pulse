@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSalesforceObject } from "@/hooks/useSalesforceData";
 
-const RISK_FIELDS = ["Id", "Name", "Project__c", "Description__c", "Probability__c", "Impact__c", "Score__c", "Owner__c", "Deadline__c", "Mitigation__c"];
+const RISK_FIELDS = ["Id", "Name", "Project__c", "Risk_Description__c", "Probability__c", "Impact__c", "Risk_Score__c", "Owner__c", "Deadline__c", "Mitigation_Plan__c", "Risk_ID__c"];
 
 function scoreBadge(score?: string) {
   const s = (score ?? "").toLowerCase();
@@ -22,13 +22,13 @@ export default function Risks() {
 
   const sorted = [...risks].sort((a: any, b: any) => {
     const order: Record<string, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 };
-    return (order[a.Score__c] ?? 4) - (order[b.Score__c] ?? 4);
+    return (order[a.Risk_Score__c] ?? 4) - (order[b.Risk_Score__c] ?? 4);
   });
 
-  const filtered = sorted.filter((r: any) => filterScore === "all" || r.Score__c === filterScore);
+  const filtered = sorted.filter((r: any) => filterScore === "all" || r.Risk_Score__c === filterScore);
 
   const counts = risks.reduce((acc: Record<string, number>, r: any) => {
-    const s = r.Score__c ?? "Low";
+    const s = r.Risk_Score__c ?? "Low";
     acc[s] = (acc[s] || 0) + 1;
     return acc;
   }, {});
@@ -49,7 +49,6 @@ export default function Risks() {
         </Select>
       </div>
 
-      {/* Summary */}
       <div className="flex gap-3 flex-wrap">
         {["Critical", "High", "Medium", "Low"].map(s => (
           <Badge key={s} variant="outline" className="text-xs gap-1.5">
@@ -66,7 +65,7 @@ export default function Risks() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead>Risk ID</TableHead>
                   <TableHead>Project</TableHead>
                   <TableHead className="hidden lg:table-cell">Description</TableHead>
                   <TableHead>Score</TableHead>
@@ -77,10 +76,10 @@ export default function Risks() {
               <TableBody>
                 {filtered.map((r: any) => (
                   <TableRow key={r.Id}>
-                    <TableCell className="text-sm font-mono">{r.Name}</TableCell>
+                    <TableCell className="text-sm font-mono">{r.Risk_ID__c || r.Name}</TableCell>
                     <TableCell className="text-sm">{r.Project__c}</TableCell>
-                    <TableCell className="text-sm hidden lg:table-cell max-w-xs truncate">{r.Description__c}</TableCell>
-                    <TableCell>{scoreBadge(r.Score__c)}</TableCell>
+                    <TableCell className="text-sm hidden lg:table-cell max-w-xs truncate">{r.Risk_Description__c}</TableCell>
+                    <TableCell>{scoreBadge(r.Risk_Score__c)}</TableCell>
                     <TableCell className="text-sm hidden md:table-cell">{r.Owner__c}</TableCell>
                     <TableCell className="text-sm hidden md:table-cell">{r.Deadline__c}</TableCell>
                   </TableRow>

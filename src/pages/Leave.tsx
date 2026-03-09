@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useSalesforceObject } from "@/hooks/useSalesforceData";
 
-const LEAVE_FIELDS = ["Id", "Name", "Employee__c", "Leave_Type__c", "Start_Date__c", "End_Date__c", "Days__c", "Approved_By__c"];
+const LEAVE_FIELDS = ["Id", "Name", "Employee__c", "Leave_Type__c", "Start_Date__c", "End_Date__c", "Days__c", "Approved_By__c", "Department__c"];
 
 function leaveColor(type?: string) {
   if (type === "Annual Leave") return "bg-info text-info-foreground";

@@ -12,6 +12,7 @@ import Leave from "./pages/Leave";
 import Risks from "./pages/Risks";
 import Updates from "./pages/Updates";
 import NotFound from "./pages/NotFound";
+import Describe from "./pages/Describe";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/leave" element={<Leave />} />
             <Route path="/risks" element={<Risks />} />
             <Route path="/updates" element={<Updates />} />
+            <Route path="/describe" element={<Describe />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
