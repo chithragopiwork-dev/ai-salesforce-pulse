@@ -12,6 +12,12 @@ const kpiConfig = [
   { title: "Deadlines (30d)", icon: CalendarClock, bg: "bg-warning/8", iconColor: "text-warning", key: "deadline" as const },
 ];
 
+/** Convert decimal (0.72) to percentage (72). Values > 1 assumed already percentage. */
+function toPercent(v?: number | null): number {
+  if (v == null) return 0;
+  return v <= 1 ? Math.round(v * 100) : Math.round(v);
+}
+
 function ragBorder(rag?: string) {
   if (rag === "Red") return "border-l-rag-red";
   if (rag === "Amber") return "border-l-rag-amber";
@@ -124,7 +130,7 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {projects.slice(0, 9).map(project => {
-              const progress = project.Percent_Complete__c ?? 0;
+              const progress = toPercent(project.Percent_Complete__c);
               return (
                 <Card key={project.Id} className={`border border-l-2 ${ragBorder(project.RAG__c)}`}>
                   <CardContent className="p-4 space-y-2.5">
@@ -140,7 +146,7 @@ export default function Home() {
                     <div>
                       <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
                         <span>Progress</span>
-                        <span>{Math.round(progress)}%</span>
+                        <span>{progress}%</span>
                       </div>
                       <Progress value={progress} className="h-1.5" />
                     </div>
