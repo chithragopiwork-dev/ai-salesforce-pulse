@@ -1,11 +1,10 @@
-import { LayoutDashboard, FolderKanban, Users, Clock, Palmtree, AlertTriangle, FileText, TrendingUp } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Users, Clock, Palmtree, AlertTriangle, FileText } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useSalesforceObject } from "@/hooks/useSalesforceData";
 
 const navItems = [
   { title: "Home", url: "/", icon: LayoutDashboard },
   { title: "Portfolio", url: "/portfolio", icon: FolderKanban },
-  { title: "Forecasting", url: "/forecasting", icon: TrendingUp },
   { title: "Team", url: "/team", icon: Users },
   { title: "Timesheets", url: "/timesheets", icon: Clock },
   { title: "Leave", url: "/leave", icon: Palmtree },
