@@ -10,6 +10,11 @@ import { useProjects } from "@/hooks/useProjects";
 import { SalesforceProject } from "@/services/salesforce";
 import { differenceInDays, parseISO } from "date-fns";
 
+function toPercent(v?: number | null): number {
+  if (v == null) return 0;
+  return v <= 1 ? Math.round(v * 100) : Math.round(v);
+}
+
 function ragBorder(rag?: string) {
   if (rag === "Red") return "border-l-rag-red";
   if (rag === "Amber") return "border-l-rag-amber";
@@ -88,7 +93,7 @@ export default function Portfolio() {
           {filtered.map(project => {
             const daysLeft = project.Deadline__c ? differenceInDays(parseISO(project.Deadline__c), new Date()) : null;
             const spent = budgetPercent(project.Spent_EUR__c, project.Budget_EUR__c);
-            const progress = project.Percent_Complete__c ?? 0;
+            const progress = toPercent(project.Percent_Complete__c);
             return (
               <Card key={project.Id} className={`border border-l-2 ${ragBorder(project.RAG__c)} cursor-pointer hover:bg-secondary/30 transition-colors`} onClick={() => setSelected(project)}>
                 <CardContent className="p-4 space-y-2.5">
@@ -109,7 +114,7 @@ export default function Portfolio() {
                   </div>
                   <div>
                     <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-                      <span>Progress</span><span>{Math.round(progress)}%</span>
+                      <span>Progress</span><span>{progress}%</span>
                     </div>
                     <Progress value={progress} className="h-1.5" />
                   </div>
@@ -143,7 +148,7 @@ export default function Portfolio() {
                   <div><p className="text-muted-foreground text-[11px]">Spent</p><p className="text-[13px]">€{selected.Spent_EUR__c?.toLocaleString()}</p></div>
                   <div><p className="text-muted-foreground text-[11px]">Start</p><p className="text-[13px]">{selected.Start_Date__c}</p></div>
                   <div><p className="text-muted-foreground text-[11px]">Deadline</p><p className="text-[13px]">{selected.Deadline__c}</p></div>
-                  <div><p className="text-muted-foreground text-[11px]">Complete</p><p className="text-[13px]">{Math.round(selected.Percent_Complete__c ?? 0)}%</p></div>
+                  <div><p className="text-muted-foreground text-[11px]">Complete</p><p className="text-[13px]">{toPercent(selected.Percent_Complete__c)}%</p></div>
                 </div>
               </div>
             </>

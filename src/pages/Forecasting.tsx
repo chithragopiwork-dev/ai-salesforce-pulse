@@ -4,18 +4,27 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProjects } from "@/hooks/useProjects";
 import { useSalesforceObject } from "@/hooks/useSalesforceData";
-import { Sparkles, TrendingUp } from "lucide-react";
+import { Sparkles, TrendingUp, Bug } from "lucide-react";
 import { differenceInDays, parseISO, addMonths, format } from "date-fns";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
 } from "recharts";
 
+/** Convert decimal (0.72) to percentage (72). Values > 1 assumed already percentage. */
+function toPercent(v?: number | null): number {
+  if (v == null) return 0;
+  return v <= 1 ? v * 100 : v;
+}
+
 interface ProjectForecast {
   id: string; name: string; rag: string; percentComplete: number;
   daysElapsed: number; daysTotal: number; daysRemaining: number;
-  predictedOnTime: "early" | "on-time" | "late"; predictedCompletionDays: number;
-  budget: number; spent: number; burnRate: number; predictedFinalCost: number; overUnder: number;
+  predictedOnTime: "early" | "on-time" | "late" | "overdue";
+  predictedCompletionDays: number;
+  budget: number; spent: number; predictedFinalCost: number; overUnder: number;
   healthScore: number; riskCount: number;
+  // debug
+  rawPct: number; deadlineStr: string; startStr: string;
 }
 
 function computeForecasts(projects: any[], risks: any[]): ProjectForecast[] {
@@ -25,34 +34,50 @@ function computeForecasts(projects: any[], risks: any[]): ProjectForecast[] {
   }, {});
 
   return projects.map((p) => {
-    const start = p.Start_Date__c ? parseISO(p.Start_Date__c) : today;
-    const deadline = p.Deadline__c ? parseISO(p.Deadline__c) : addMonths(today, 3);
+    const startStr = p.Start_Date__c || "";
+    const deadlineStr = p.Deadline__c || "";
+    const start = startStr ? parseISO(startStr) : today;
+    const deadline = deadlineStr ? parseISO(deadlineStr) : addMonths(today, 3);
     const daysTotal = Math.max(differenceInDays(deadline, start), 1);
     const daysElapsed = Math.max(differenceInDays(today, start), 1);
-    const daysRemaining = Math.max(differenceInDays(deadline, today), 0);
-    const pct = p.Percent_Complete__c ?? 0;
+    const daysRemaining = differenceInDays(deadline, today); // can be negative = overdue
+
+    const rawPct = p.Percent_Complete__c ?? 0;
+    const pct = toPercent(rawPct); // now 0-100
+
+    // Velocity: % per day
     const velocity = pct / daysElapsed;
     const predictedCompletionDays = velocity > 0 ? Math.round(100 / velocity) : daysTotal * 2;
-    const predictedOnTime: "early" | "on-time" | "late" =
-      predictedCompletionDays < daysTotal * 0.95 ? "early" :
-      predictedCompletionDays <= daysTotal * 1.05 ? "on-time" : "late";
+
+    let predictedOnTime: "early" | "on-time" | "late" | "overdue";
+    if (daysRemaining < 0 && pct < 100) {
+      predictedOnTime = "overdue";
+    } else if (predictedCompletionDays < daysTotal * 0.95) {
+      predictedOnTime = "early";
+    } else if (predictedCompletionDays <= daysTotal * 1.05) {
+      predictedOnTime = "on-time";
+    } else {
+      predictedOnTime = "late";
+    }
 
     const budget = p.Budget_EUR__c ?? 0;
     const spent = p.Spent_EUR__c ?? 0;
-    const burnRate = daysElapsed > 0 ? spent / daysElapsed : 0;
-    const predictedFinalCost = Math.round(burnRate * daysTotal);
+    // Budget forecast: if pct > 0, predicted = (spent / pct) * 100
+    const predictedFinalCost = pct > 0 ? Math.round((spent / pct) * 100) : (budget > 0 ? budget : 0);
     const overUnder = predictedFinalCost - budget;
     const riskCount = risksByProject[p.Id] ?? risksByProject[p.Project_Name__c] ?? 0;
 
     let ragScore = p.RAG__c === "Green" ? 30 : p.RAG__c === "Amber" ? 15 : 0;
     let budgetScore = budget > 0 ? Math.max(0, 25 - Math.max(0, (overUnder / budget) * 25)) : 25;
-    let timelineScore = predictedOnTime === "early" ? 25 : predictedOnTime === "on-time" ? 20 : Math.max(0, 25 - (predictedCompletionDays - daysTotal) / daysTotal * 25);
+    let timelineScore = predictedOnTime === "early" ? 25 : predictedOnTime === "on-time" ? 20 :
+      predictedOnTime === "overdue" ? 0 : Math.max(0, 25 - (predictedCompletionDays - daysTotal) / daysTotal * 25);
     let riskScore = Math.max(0, 20 - riskCount * 5);
     const healthScore = Math.round(Math.min(100, ragScore + budgetScore + timelineScore + riskScore));
 
-    return { id: p.Id, name: p.Project_Name__c || p.Name, rag: p.RAG__c || "Unknown", percentComplete: pct,
-      daysElapsed, daysTotal, daysRemaining, predictedOnTime, predictedCompletionDays,
-      budget, spent, burnRate, predictedFinalCost, overUnder, healthScore, riskCount };
+    return { id: p.Id, name: p.Project_Name__c || p.Name, rag: p.RAG__c || "Unknown",
+      percentComplete: pct, daysElapsed, daysTotal, daysRemaining, predictedOnTime, predictedCompletionDays,
+      budget, spent, predictedFinalCost, overUnder, healthScore, riskCount,
+      rawPct, deadlineStr, startStr };
   });
 }
 
@@ -72,14 +97,15 @@ function HealthGauge({ score, size = 64 }: { score: number; size?: number }) {
   );
 }
 
-function StatusBadge({ status }: { status: "early" | "on-time" | "late" }) {
-  const styles = {
+function StatusBadge({ status }: { status: "early" | "on-time" | "late" | "overdue" }) {
+  const styles: Record<string, string> = {
     early: "bg-success/10 text-success border-success/20",
     "on-time": "bg-warning/10 text-warning border-warning/20",
     late: "bg-destructive/10 text-destructive border-destructive/20",
+    overdue: "bg-destructive/10 text-destructive border-destructive/20",
   };
-  const label = status === "early" ? "Early" : status === "on-time" ? "On Time" : "Late";
-  return <Badge variant="outline" className={`text-[10px] ${styles[status]}`}>{label}</Badge>;
+  const labels: Record<string, string> = { early: "Early", "on-time": "On Time", late: "Late", overdue: "Overdue" };
+  return <Badge variant="outline" className={`text-[10px] ${styles[status]}`}>{labels[status]}</Badge>;
 }
 
 export default function Forecasting() {
@@ -89,13 +115,13 @@ export default function Forecasting() {
 
   const forecasts = useMemo(() => computeForecasts(projects, risks), [projects, risks]);
   const portfolioHealth = forecasts.length > 0 ? Math.round(forecasts.reduce((s, f) => s + f.healthScore, 0) / forecasts.length) : 0;
-  const lateProjects = forecasts.filter(f => f.predictedOnTime === "late");
+  const lateProjects = forecasts.filter(f => f.predictedOnTime === "late" || f.predictedOnTime === "overdue");
   const overBudgetProjects = forecasts.filter(f => f.overUnder > 0);
 
   const summaryBullets = useMemo(() => {
     const bullets: { text: string; color: string }[] = [];
-    if (lateProjects.length > 0) bullets.push({ text: `${lateProjects.length} project${lateProjects.length > 1 ? "s" : ""} predicted to miss deadline`, color: "bg-destructive" });
-    const biggest = overBudgetProjects.sort((a, b) => b.overUnder - a.overUnder)[0];
+    if (lateProjects.length > 0) bullets.push({ text: `${lateProjects.length} project${lateProjects.length > 1 ? "s" : ""} predicted late or overdue`, color: "bg-destructive" });
+    const biggest = [...overBudgetProjects].sort((a, b) => b.overUnder - a.overUnder)[0];
     if (biggest) bullets.push({ text: `${biggest.name} is the biggest budget risk (€${biggest.overUnder.toLocaleString()} over)`, color: "bg-warning" });
     if (forecasts.length > 0 && lateProjects.length === 0 && overBudgetProjects.length === 0) bullets.push({ text: "All projects on track — portfolio healthy", color: "bg-success" });
     if (bullets.length < 3) bullets.push({ text: `Portfolio health: ${portfolioHealth}/100`, color: portfolioHealth >= 70 ? "bg-success" : "bg-warning" });
@@ -113,8 +139,8 @@ export default function Forecasting() {
     name: f.name.length > 10 ? f.name.substring(0, 10) + "…" : f.name,
     cells: next6Months.map((_, idx) => {
       const m = f.daysRemaining / 30 - idx;
-      if (m < 0) return "done";
-      if (f.predictedOnTime === "late" && m < 2) return "high";
+      if (m < -1) return "done";
+      if (f.predictedOnTime === "overdue" || (f.predictedOnTime === "late" && m < 2)) return "high";
       if (f.rag === "Amber" || (f.predictedOnTime === "late" && m < 4)) return "medium";
       return "low";
     }),
@@ -146,8 +172,26 @@ export default function Forecasting() {
     <div className="space-y-6 max-w-6xl">
       <h1 className="text-xl font-semibold">Forecasting</h1>
 
+      {/* Debug Panel */}
+      <Card className="border border-dashed border-warning/40 bg-warning/[0.02]">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Bug className="h-3.5 w-3.5 text-warning" />
+            <span className="text-[11px] font-medium text-warning">Debug: Field Names & Values (temporary)</span>
+          </div>
+          <div className="text-[10px] font-mono text-muted-foreground space-y-1">
+            <p>Fields used: Percent_Complete__c (decimal, ×100), Deadline__c (date), Start_Date__c (date), Budget_EUR__c (double), Spent_EUR__c (double)</p>
+            {forecasts.slice(0, 3).map(f => (
+              <p key={f.id}>
+                {f.name}: rawPct={f.rawPct} → {Math.round(f.percentComplete)}% | deadline={f.deadlineStr} | daysLeft={f.daysRemaining} | budget=€{f.budget.toLocaleString()} | spent=€{f.spent.toLocaleString()} | predicted=€{f.predictedFinalCost.toLocaleString()}
+              </p>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* AI Summary */}
-      <Card className="border">
+      <Card className="border border-primary/15 bg-primary/[0.02]">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
@@ -188,14 +232,22 @@ export default function Forecasting() {
                   <StatusBadge status={f.predictedOnTime} />
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div><span className="text-muted-foreground">Days left</span><p className="font-semibold text-base">{f.daysRemaining}</p></div>
-                  <div><span className="text-muted-foreground">Complete</span><p className="font-semibold text-base">{Math.round(f.percentComplete)}%</p></div>
+                  <div>
+                    <span className="text-muted-foreground">Days left</span>
+                    <p className={`font-semibold text-base ${f.daysRemaining < 0 ? "text-destructive" : ""}`}>
+                      {f.daysRemaining < 0 ? `${Math.abs(f.daysRemaining)}d overdue` : f.daysRemaining}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Complete</span>
+                    <p className="font-semibold text-base">{Math.round(f.percentComplete)}%</p>
+                  </div>
                 </div>
                 <div className="h-2 bg-secondary rounded-full overflow-hidden relative">
                   <div className="h-full bg-muted-foreground/20 rounded-full absolute" style={{ width: `${Math.min(100, (f.daysElapsed / f.daysTotal) * 100)}%` }} />
                   <div className="h-full rounded-full absolute" style={{
                     width: `${Math.min(100, f.percentComplete)}%`,
-                    background: f.predictedOnTime === "late" ? "hsl(0, 72%, 51%)" : f.predictedOnTime === "early" ? "hsl(152, 56%, 42%)" : "hsl(38, 92%, 50%)",
+                    background: f.predictedOnTime === "overdue" || f.predictedOnTime === "late" ? "hsl(0, 72%, 51%)" : f.predictedOnTime === "early" ? "hsl(152, 56%, 42%)" : "hsl(38, 92%, 50%)",
                   }} />
                 </div>
               </CardContent>
