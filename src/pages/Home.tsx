@@ -29,7 +29,7 @@ function KPICard({ title, value, icon: Icon, color, isLoading }: {
 export default function Home() {
   const { data: projects = [], isLoading } = useProjects();
   const stats = useProjectStats(projects);
-  const greeting = new Date().getHours() < 12 ? "Good Morning" : new Date().getHours() < 18 ? "Good Afternoon" : "Good Evening";
+  const greeting = "Hi There";
 
   return (
     <div className="space-y-6">

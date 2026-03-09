@@ -9,16 +9,32 @@ interface TopBarProps {
   isConnected: boolean;
   isRefetching?: boolean;
   onRefresh?: () => void;
+  lastUpdated?: Date | null;
   searchQuery: string;
   onSearchChange: (q: string) => void;
 }
 
-export function TopBar({ isConnected, isRefetching, onRefresh, searchQuery, onSearchChange }: TopBarProps) {
+export function TopBar({ isConnected, isRefetching, onRefresh, lastUpdated, searchQuery, onSearchChange }: TopBarProps) {
   const today = format(new Date(), "EEEE, MMMM d, yyyy");
 
   return (
     <header className="h-14 border-b bg-card flex items-center justify-between px-6 sticky top-0 z-20">
-      <p className="text-sm text-muted-foreground hidden sm:block">{today}</p>
+      <div className="flex items-center gap-3">
+        <p className="text-sm text-muted-foreground hidden sm:block">{today}</p>
+
+        {onRefresh && (
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs" onClick={onRefresh} disabled={isRefetching}>
+            <RefreshCw className={cn("h-3.5 w-3.5", isRefetching && "animate-spin")} />
+            {isRefetching ? (
+              <span className="text-muted-foreground">Refreshing…</span>
+            ) : lastUpdated ? (
+              <span className="text-muted-foreground">Last updated: {format(lastUpdated, "HH:mm:ss")}</span>
+            ) : (
+              <span className="hidden sm:inline text-muted-foreground">Refresh</span>
+            )}
+          </Button>
+        )}
+      </div>
 
       <div className="flex items-center gap-3 ml-auto">
         <div className="relative w-64 hidden md:block">
@@ -38,12 +54,6 @@ export function TopBar({ isConnected, isRefetching, onRefresh, searchQuery, onSe
           )} />
           {isConnected ? "Connected" : "Offline"}
         </Badge>
-
-        {onRefresh && (
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRefresh} disabled={isRefetching}>
-            <RefreshCw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
-          </Button>
-        )}
 
         <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold">
           PM
