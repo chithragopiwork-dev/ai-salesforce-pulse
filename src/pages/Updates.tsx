@@ -8,10 +8,10 @@ import { useSalesforceObject } from "@/hooks/useSalesforceData";
 const UPDATE_FIELDS = ["Id", "Name", "Project__c", "Updated_By__c", "Date__c", "Update_Summary__c", "Next_Steps__c", "RAG__c"];
 
 function ragBadge(rag?: string) {
-  if (rag === "Red") return <Badge className="bg-destructive text-destructive-foreground text-[10px]">Red</Badge>;
-  if (rag === "Amber") return <Badge className="bg-warning text-warning-foreground text-[10px]">Amber</Badge>;
-  if (rag === "Green") return <Badge className="bg-success text-success-foreground text-[10px]">Green</Badge>;
-  return <Badge variant="secondary" className="text-[10px]">{rag ?? "N/A"}</Badge>;
+  if (rag === "Red") return <Badge variant="outline" className="text-[10px] text-destructive border-destructive/30">Red</Badge>;
+  if (rag === "Amber") return <Badge variant="outline" className="text-[10px] text-warning border-warning/30">Amber</Badge>;
+  if (rag === "Green") return <Badge variant="outline" className="text-[10px] text-success border-success/30">Green</Badge>;
+  return <Badge variant="outline" className="text-[10px]">{rag ?? "N/A"}</Badge>;
 }
 
 export default function Updates() {
@@ -26,11 +26,11 @@ export default function Updates() {
   const filtered = sorted.filter((u: any) => filterRAG === "all" || u.RAG__c === filterRAG);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 max-w-6xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Updates</h1>
+        <h1 className="text-xl font-semibold">Updates</h1>
         <Select value={filterRAG} onValueChange={setFilterRAG}>
-          <SelectTrigger className="w-36 h-9 text-sm"><SelectValue placeholder="RAG" /></SelectTrigger>
+          <SelectTrigger className="w-28 h-8 text-xs"><SelectValue placeholder="RAG" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="Red">Red</SelectItem>
@@ -41,24 +41,24 @@ export default function Updates() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-4">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-lg" />)}</div>
+        <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}</div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filtered.map((u: any) => (
-            <Card key={u.Id} className="shadow-sm">
-              <CardContent className="p-5">
+            <Card key={u.Id} className="border">
+              <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="font-semibold text-sm">{u.Project__c}</p>
-                    <p className="text-xs text-muted-foreground">{u.Date__c} · {u.Updated_By__c}</p>
+                    <p className="text-[13px] font-medium">{u.Project__c}</p>
+                    <p className="text-[11px] text-muted-foreground">{u.Date__c} · {u.Updated_By__c}</p>
                   </div>
                   {ragBadge(u.RAG__c)}
                 </div>
-                <p className="text-sm text-foreground/80 mb-2">{u.Update_Summary__c}</p>
+                <p className="text-xs text-muted-foreground">{u.Update_Summary__c}</p>
                 {u.Next_Steps__c && (
-                  <div className="text-xs text-muted-foreground">
-                    <span className="font-medium">Next steps:</span> {u.Next_Steps__c}
-                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1.5">
+                    <span className="font-medium text-foreground">Next:</span> {u.Next_Steps__c}
+                  </p>
                 )}
               </CardContent>
             </Card>

@@ -8,50 +8,47 @@ const TEAM_FIELDS = ["Id", "Name", "Full_Name__c", "Employee_ID__c", "Role__c", 
 
 export default function Team() {
   const { data: members = [], isLoading } = useSalesforceObject("team_members__c", TEAM_FIELDS, 300_000);
-
   const onLeave = members.filter((m: any) => m.Status__c === "On Leave");
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Team</h1>
+    <div className="space-y-5 max-w-6xl">
+      <h1 className="text-xl font-semibold">Team</h1>
 
       {onLeave.length > 0 && (
-        <div className="rounded-lg border border-warning/30 bg-warning/5 p-4">
-          <p className="text-sm font-medium text-warning">🏖️ Currently on Leave</p>
-          <p className="text-xs text-muted-foreground mt-1">{onLeave.map((m: any) => m.Full_Name__c || m.Name).join(", ")}</p>
+        <div className="rounded-md border border-warning/30 bg-warning/5 px-4 py-3">
+          <p className="text-xs font-medium text-warning">Currently on Leave</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{onLeave.map((m: any) => m.Full_Name__c || m.Name).join(", ")}</p>
         </div>
       )}
 
-      <Card className="shadow-sm">
+      <Card className="border">
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-6 space-y-3">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
+            <div className="p-4 space-y-2">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="hidden md:table-cell">Department</TableHead>
-                  <TableHead className="hidden lg:table-cell">Project</TableHead>
-                  <TableHead className="hidden md:table-cell">Availability</TableHead>
-                  <TableHead className="hidden lg:table-cell">Location</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="text-[11px]">Name</TableHead>
+                  <TableHead className="text-[11px]">Role</TableHead>
+                  <TableHead className="text-[11px] hidden md:table-cell">Department</TableHead>
+                  <TableHead className="text-[11px] hidden lg:table-cell">Project</TableHead>
+                  <TableHead className="text-[11px] hidden md:table-cell">Availability</TableHead>
+                  <TableHead className="text-[11px] hidden lg:table-cell">Location</TableHead>
+                  <TableHead className="text-[11px]">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {members.map((m: any) => (
                   <TableRow key={m.Id}>
-                    <TableCell className="font-medium text-sm">{m.Full_Name__c || m.Name}</TableCell>
-                    <TableCell className="text-sm">{m.Role__c}</TableCell>
-                    <TableCell className="text-sm hidden md:table-cell">{m.Department__c}</TableCell>
-                    <TableCell className="text-sm hidden lg:table-cell">{m.Assigned_Project__c}</TableCell>
-                    <TableCell className="text-sm hidden md:table-cell">{m.Availability__c != null ? `${m.Availability__c}%` : "-"}</TableCell>
-                    <TableCell className="text-sm hidden lg:table-cell">{m.Location__c}</TableCell>
+                    <TableCell className="text-xs font-medium">{m.Full_Name__c || m.Name}</TableCell>
+                    <TableCell className="text-xs">{m.Role__c}</TableCell>
+                    <TableCell className="text-xs hidden md:table-cell">{m.Department__c}</TableCell>
+                    <TableCell className="text-xs hidden lg:table-cell">{m.Assigned_Project__c}</TableCell>
+                    <TableCell className="text-xs hidden md:table-cell">{m.Availability__c != null ? `${m.Availability__c}%` : "-"}</TableCell>
+                    <TableCell className="text-xs hidden lg:table-cell">{m.Location__c}</TableCell>
                     <TableCell>
-                      <Badge variant={m.Status__c === "Active" ? "default" : "secondary"} className="text-[10px]">
-                        {m.Status__c}
-                      </Badge>
+                      <Badge variant={m.Status__c === "Active" ? "default" : "secondary"} className="text-[10px]">{m.Status__c}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}
