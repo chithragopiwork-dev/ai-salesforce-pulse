@@ -11,10 +11,10 @@ const RISK_FIELDS = ["Id", "Name", "Project__c", "Risk_Description__c", "Probabi
 
 function scoreBadge(score?: string) {
   const s = (score ?? "").toLowerCase();
-  if (s === "critical") return <Badge className="bg-destructive text-destructive-foreground text-[10px] rounded-full">Critical</Badge>;
-  if (s === "high") return <Badge className="bg-warning text-warning-foreground text-[10px] rounded-full">High</Badge>;
-  if (s === "medium") return <Badge className="bg-rag-amber text-warning-foreground text-[10px] rounded-full">Medium</Badge>;
-  return <Badge variant="secondary" className="text-[10px] rounded-full">Low</Badge>;
+  if (s === "critical") return <Badge variant="outline" className="text-[10px] text-destructive border-destructive/30">Critical</Badge>;
+  if (s === "high") return <Badge variant="outline" className="text-[10px] text-warning border-warning/30">High</Badge>;
+  if (s === "medium") return <Badge variant="outline" className="text-[10px] text-rag-amber border-rag-amber/30">Medium</Badge>;
+  return <Badge variant="outline" className="text-[10px]">Low</Badge>;
 }
 
 export default function Risks() {
@@ -29,22 +29,17 @@ export default function Risks() {
   const filtered = sorted.filter((r: any) => filterScore === "all" || r.Risk_Score__c === filterScore);
 
   const counts = risks.reduce((acc: Record<string, number>, r: any) => {
-    const s = r.Risk_Score__c ?? "Low";
-    acc[s] = (acc[s] || 0) + 1;
-    return acc;
+    const s = r.Risk_Score__c ?? "Low"; acc[s] = (acc[s] || 0) + 1; return acc;
   }, {});
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 max-w-6xl">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Risks</h1>
-          <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider font-medium">Risk register overview</p>
-        </div>
+        <h1 className="text-xl font-semibold">Risks</h1>
         <Select value={filterScore} onValueChange={setFilterScore}>
-          <SelectTrigger className="w-36 h-9 text-sm rounded-xl"><SelectValue placeholder="Score" /></SelectTrigger>
+          <SelectTrigger className="w-28 h-8 text-xs"><SelectValue placeholder="Score" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Scores</SelectItem>
+            <SelectItem value="all">All</SelectItem>
             <SelectItem value="Critical">Critical</SelectItem>
             <SelectItem value="High">High</SelectItem>
             <SelectItem value="Medium">Medium</SelectItem>
@@ -53,47 +48,43 @@ export default function Risks() {
         </Select>
       </div>
 
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-2 flex-wrap">
         {["Critical", "High", "Medium", "Low"].map(s => (
-          <Badge key={s} variant="outline" className="text-xs gap-1.5 rounded-full px-3">
-            {s}: <span className="font-bold">{counts[s] ?? 0}</span>
-          </Badge>
+          <span key={s} className="text-[11px] text-muted-foreground">{s}: <span className="font-medium text-foreground">{counts[s] ?? 0}</span></span>
         ))}
       </div>
 
-      <Card className="shadow-md rounded-2xl">
+      <Card className="border">
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-6 space-y-3">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
+            <div className="p-4 space-y-2">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 flex flex-col items-center text-center">
-              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                <AlertTriangle className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <p className="font-semibold text-lg">No risks found</p>
-              <p className="text-sm text-muted-foreground mt-1">Great news — no risks match your current filter.</p>
+            <div className="p-10 flex flex-col items-center text-center">
+              <AlertTriangle className="h-6 w-6 text-muted-foreground mb-2" />
+              <p className="text-sm font-medium">No risks found</p>
+              <p className="text-xs text-muted-foreground mt-0.5">No risks match your filter.</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Risk ID</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead className="hidden lg:table-cell">Description</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead className="hidden md:table-cell">Owner</TableHead>
-                  <TableHead className="hidden md:table-cell">Deadline</TableHead>
+                  <TableHead className="text-[11px]">Risk ID</TableHead>
+                  <TableHead className="text-[11px]">Project</TableHead>
+                  <TableHead className="text-[11px] hidden lg:table-cell">Description</TableHead>
+                  <TableHead className="text-[11px]">Score</TableHead>
+                  <TableHead className="text-[11px] hidden md:table-cell">Owner</TableHead>
+                  <TableHead className="text-[11px] hidden md:table-cell">Deadline</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((r: any) => (
-                  <TableRow key={r.Id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="text-sm font-mono">{r.Risk_ID__c || r.Name}</TableCell>
-                    <TableCell className="text-sm">{r.Project__c}</TableCell>
-                    <TableCell className="text-sm hidden lg:table-cell max-w-xs truncate">{r.Risk_Description__c}</TableCell>
+                  <TableRow key={r.Id}>
+                    <TableCell className="text-xs font-mono">{r.Risk_ID__c || r.Name}</TableCell>
+                    <TableCell className="text-xs">{r.Project__c}</TableCell>
+                    <TableCell className="text-xs hidden lg:table-cell max-w-xs truncate">{r.Risk_Description__c}</TableCell>
                     <TableCell>{scoreBadge(r.Risk_Score__c)}</TableCell>
-                    <TableCell className="text-sm hidden md:table-cell">{r.Owner__c}</TableCell>
-                    <TableCell className="text-sm hidden md:table-cell">{r.Deadline__c}</TableCell>
+                    <TableCell className="text-xs hidden md:table-cell">{r.Owner__c}</TableCell>
+                    <TableCell className="text-xs hidden md:table-cell">{r.Deadline__c}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

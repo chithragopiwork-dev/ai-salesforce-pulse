@@ -10,26 +10,26 @@ export default function Timesheets() {
   const { data: timesheets = [], isLoading } = useSalesforceObject("timesheets__c", TS_FIELDS, 600_000);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Timesheets</h1>
+    <div className="space-y-5 max-w-6xl">
+      <h1 className="text-xl font-semibold">Timesheets</h1>
 
-      <Card className="shadow-sm">
+      <Card className="border">
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-6 space-y-3">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
+            <div className="p-4 space-y-2">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead className="text-right">W1</TableHead>
-                  <TableHead className="text-right">W2</TableHead>
-                  <TableHead className="text-right">W3</TableHead>
-                  <TableHead className="text-right">W4</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Budget</TableHead>
-                  <TableHead className="text-right">Variance</TableHead>
+                  <TableHead className="text-[11px]">Employee</TableHead>
+                  <TableHead className="text-[11px]">Project</TableHead>
+                  <TableHead className="text-[11px] text-right">W1</TableHead>
+                  <TableHead className="text-[11px] text-right">W2</TableHead>
+                  <TableHead className="text-[11px] text-right">W3</TableHead>
+                  <TableHead className="text-[11px] text-right">W4</TableHead>
+                  <TableHead className="text-[11px] text-right">Total</TableHead>
+                  <TableHead className="text-[11px] text-right">Budget</TableHead>
+                  <TableHead className="text-[11px] text-right">Variance</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -39,14 +39,14 @@ export default function Timesheets() {
                   const variance = t.Variance__c ?? (budget - total);
                   return (
                     <TableRow key={t.Id}>
-                      <TableCell className="font-medium text-sm">{t.Employee__c || t.Name}</TableCell>
-                      <TableCell className="text-sm">{t.Project__c}</TableCell>
-                      <TableCell className="text-right text-sm">{t.Week_1_Hours__c ?? "-"}</TableCell>
-                      <TableCell className="text-right text-sm">{t.Week_2_Hours__c ?? "-"}</TableCell>
-                      <TableCell className="text-right text-sm">{t.Week_3_Hours__c ?? "-"}</TableCell>
-                      <TableCell className="text-right text-sm">{t.Week_4_Hours__c ?? "-"}</TableCell>
-                      <TableCell className="text-right text-sm font-medium">{total}</TableCell>
-                      <TableCell className="text-right text-sm">{budget}</TableCell>
+                      <TableCell className="text-xs font-medium">{t.Employee__c || t.Name}</TableCell>
+                      <TableCell className="text-xs">{t.Project__c}</TableCell>
+                      <TableCell className="text-right text-xs">{t.Week_1_Hours__c ?? "-"}</TableCell>
+                      <TableCell className="text-right text-xs">{t.Week_2_Hours__c ?? "-"}</TableCell>
+                      <TableCell className="text-right text-xs">{t.Week_3_Hours__c ?? "-"}</TableCell>
+                      <TableCell className="text-right text-xs">{t.Week_4_Hours__c ?? "-"}</TableCell>
+                      <TableCell className="text-right text-xs font-medium">{total}</TableCell>
+                      <TableCell className="text-right text-xs">{budget}</TableCell>
                       <TableCell className="text-right">
                         <Badge variant="outline" className={`text-[10px] ${variance < 0 ? "text-destructive border-destructive/30" : "text-success border-success/30"}`}>
                           {variance > 0 ? "+" : ""}{variance}h
