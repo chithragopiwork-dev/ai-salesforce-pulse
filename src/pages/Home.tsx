@@ -5,29 +5,12 @@ import { Progress } from "@/components/ui/progress";
 import { FolderKanban, Users, AlertTriangle, CalendarClock, Sparkles } from "lucide-react";
 import { useProjects, useProjectStats } from "@/hooks/useProjects";
 
-function KPICard({ title, value, icon: Icon, isLoading }: {
-  title: string; value: number | string; icon: any; isLoading: boolean;
-}) {
-  return (
-    <Card className="border">
-      <CardContent className="p-4">
-        {isLoading ? (
-          <><Skeleton className="h-8 w-12 mb-1" /><Skeleton className="h-3 w-20" /></>
-        ) : (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-2xl font-semibold">{value}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{title}</p>
-            </div>
-            <div className="h-8 w-8 rounded-md bg-secondary flex items-center justify-center">
-              <Icon className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+const kpiConfig = [
+  { title: "Total Projects", icon: FolderKanban, bg: "bg-primary/8", iconColor: "text-primary", key: "total" as const },
+  { title: "Active", icon: Users, bg: "bg-success/8", iconColor: "text-success", key: "active" as const },
+  { title: "At Risk", icon: AlertTriangle, bg: "bg-destructive/8", iconColor: "text-destructive", key: "risk" as const },
+  { title: "Deadlines (30d)", icon: CalendarClock, bg: "bg-warning/8", iconColor: "text-warning", key: "deadline" as const },
+];
 
 function ragBorder(rag?: string) {
   if (rag === "Red") return "border-l-rag-red";
@@ -40,6 +23,13 @@ export default function Home() {
   const { data: projects = [], isLoading } = useProjects();
   const stats = useProjectStats(projects);
 
+  const kpiValues: Record<string, number> = {
+    total: stats.total,
+    active: stats.active,
+    risk: stats.highRisk,
+    deadline: stats.nearingDeadline.length,
+  };
+
   return (
     <div className="space-y-6 max-w-6xl">
       <div>
@@ -49,17 +39,34 @@ export default function Home() {
 
       {/* KPI */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KPICard title="Total Projects" value={stats.total} icon={FolderKanban} isLoading={isLoading} />
-        <KPICard title="Active" value={stats.active} icon={Users} isLoading={isLoading} />
-        <KPICard title="At Risk" value={stats.highRisk} icon={AlertTriangle} isLoading={isLoading} />
-        <KPICard title="Deadlines (30d)" value={stats.nearingDeadline.length} icon={CalendarClock} isLoading={isLoading} />
+        {kpiConfig.map(({ title, icon: Icon, bg, iconColor, key }) => (
+          <Card key={key} className="border">
+            <CardContent className="p-4">
+              {isLoading ? (
+                <><Skeleton className="h-8 w-12 mb-1" /><Skeleton className="h-3 w-20" /></>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-semibold">{kpiValues[key]}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{title}</p>
+                  </div>
+                  <div className={`h-9 w-9 rounded-lg ${bg} flex items-center justify-center`}>
+                    <Icon className={`h-4 w-4 ${iconColor}`} />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* AI Briefing */}
-      <Card className="border">
+      <Card className="border border-primary/15 bg-primary/[0.02]">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <div className="h-5 w-5 rounded bg-primary/10 flex items-center justify-center">
+              <Sparkles className="h-3 w-3 text-primary" />
+            </div>
             <span className="text-xs font-medium">AI Briefing</span>
           </div>
           {isLoading ? (
