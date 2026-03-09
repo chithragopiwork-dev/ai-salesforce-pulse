@@ -9,19 +9,16 @@ import { useProjects } from "@/hooks/useProjects";
 import { SalesforceProject } from "@/services/salesforce";
 import { differenceInDays, parseISO } from "date-fns";
 
-function ragColor(health?: string) {
-  if (health === "At Risk" || health === "Delayed") return "bg-rag-red";
-  if (health === "Healthy") return "bg-rag-green";
-  return "bg-rag-amber";
+function ragDotClass(rag?: string) {
+  if (rag === "Red") return "bg-rag-red";
+  if (rag === "Amber") return "bg-rag-amber";
+  if (rag === "Green") return "bg-rag-green";
+  return "bg-muted";
 }
 
-function ragDot(health?: string) {
-  return <span className={`inline-block h-2.5 w-2.5 rounded-full ${ragColor(health)}`} />;
-}
-
-function budgetPercent(actual?: number, budget?: number) {
+function budgetPercent(spent?: number, budget?: number) {
   if (!budget || budget === 0) return 0;
-  return Math.min(Math.round(((actual ?? 0) / budget) * 100), 100);
+  return Math.min(Math.round(((spent ?? 0) / budget) * 100), 100);
 }
 
 export default function Portfolio() {
@@ -32,9 +29,11 @@ export default function Portfolio() {
 
   const filtered = projects.filter(p => {
     if (filterStatus !== "all" && p.Status__c !== filterStatus) return false;
-    if (filterRAG !== "all" && p.Health_Status__c !== filterRAG) return false;
+    if (filterRAG !== "all" && p.RAG__c !== filterRAG) return false;
     return true;
   });
+
+  const statuses = [...new Set(projects.map(p => p.Status__c).filter(Boolean))];
 
   return (
     <div className="space-y-6">
@@ -45,20 +44,16 @@ export default function Portfolio() {
             <SelectTrigger className="w-36 h-9 text-sm"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="Active">Active</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
-              <SelectItem value="On Hold">On Hold</SelectItem>
-              <SelectItem value="Planning">Planning</SelectItem>
-              <SelectItem value="Delayed">Delayed</SelectItem>
+              {statuses.map(s => <SelectItem key={s} value={s!}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filterRAG} onValueChange={setFilterRAG}>
             <SelectTrigger className="w-36 h-9 text-sm"><SelectValue placeholder="RAG" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All RAG</SelectItem>
-              <SelectItem value="Healthy">Green</SelectItem>
-              <SelectItem value="At Risk">Amber</SelectItem>
-              <SelectItem value="Delayed">Red</SelectItem>
+              <SelectItem value="Green">Green</SelectItem>
+              <SelectItem value="Amber">Amber</SelectItem>
+              <SelectItem value="Red">Red</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -75,21 +70,18 @@ export default function Portfolio() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map(project => {
-            const daysLeft = project.End_Date__c ? differenceInDays(parseISO(project.End_Date__c), new Date()) : null;
-            const spent = budgetPercent(project.Actual_Cost__c, project.Budget__c);
+            const daysLeft = project.Deadline__c ? differenceInDays(parseISO(project.Deadline__c), new Date()) : null;
+            const spent = budgetPercent(project.Spent_EUR__c, project.Budget_EUR__c);
+            const progress = project.Percent_Complete__c ?? 0;
             return (
-              <Card
-                key={project.Id}
-                className="shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => setSelected(project)}
-              >
+              <Card key={project.Id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelected(project)}>
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-semibold text-sm">{project.Name}</p>
-                      <p className="text-xs text-muted-foreground">{project.Project_Manager__c}</p>
+                      <p className="font-semibold text-sm">{project.Project_Name__c || project.Name}</p>
+                      <p className="text-xs text-muted-foreground">{project.Coordinator__c}</p>
                     </div>
-                    {ragDot(project.Health_Status__c)}
+                    <span className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 mt-1 ${ragDotClass(project.RAG__c)}`} />
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-[10px]">{project.Status__c}</Badge>
@@ -99,6 +91,15 @@ export default function Portfolio() {
                       </span>
                     )}
                   </div>
+                  {/* Progress bar */}
+                  <div>
+                    <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                      <span>Progress</span>
+                      <span>{Math.round(progress)}%</span>
+                    </div>
+                    <Progress value={progress} className="h-1.5" />
+                  </div>
+                  {/* Budget bar */}
                   <div>
                     <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
                       <span>Budget</span>
@@ -118,22 +119,20 @@ export default function Portfolio() {
           {selected && (
             <>
               <SheetHeader>
-                <SheetTitle>{selected.Name}</SheetTitle>
+                <SheetTitle>{selected.Project_Name__c || selected.Name}</SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4 text-sm">
                 <div className="grid grid-cols-2 gap-3">
+                  <div><p className="text-muted-foreground text-xs">Project ID</p><p className="font-medium">{selected.Project_ID__c}</p></div>
                   <div><p className="text-muted-foreground text-xs">Status</p><p className="font-medium">{selected.Status__c}</p></div>
-                  <div><p className="text-muted-foreground text-xs">Priority</p><p className="font-medium">{selected.Priority__c}</p></div>
-                  <div><p className="text-muted-foreground text-xs">Coordinator</p><p className="font-medium">{selected.Project_Manager__c}</p></div>
-                  <div><p className="text-muted-foreground text-xs">Health</p><p className="font-medium">{selected.Health_Status__c}</p></div>
-                  <div><p className="text-muted-foreground text-xs">Budget</p><p className="font-medium">£{selected.Budget__c?.toLocaleString()}</p></div>
-                  <div><p className="text-muted-foreground text-xs">Actual Cost</p><p className="font-medium">£{selected.Actual_Cost__c?.toLocaleString()}</p></div>
+                  <div><p className="text-muted-foreground text-xs">RAG</p><div className="flex items-center gap-1.5"><span className={`h-2.5 w-2.5 rounded-full ${ragDotClass(selected.RAG__c)}`} /><span className="font-medium">{selected.RAG__c}</span></div></div>
+                  <div><p className="text-muted-foreground text-xs">Coordinator</p><p className="font-medium">{selected.Coordinator__c}</p></div>
+                  <div><p className="text-muted-foreground text-xs">Budget (EUR)</p><p className="font-medium">€{selected.Budget_EUR__c?.toLocaleString()}</p></div>
+                  <div><p className="text-muted-foreground text-xs">Spent (EUR)</p><p className="font-medium">€{selected.Spent_EUR__c?.toLocaleString()}</p></div>
                   <div><p className="text-muted-foreground text-xs">Start Date</p><p className="font-medium">{selected.Start_Date__c}</p></div>
-                  <div><p className="text-muted-foreground text-xs">End Date</p><p className="font-medium">{selected.End_Date__c}</p></div>
+                  <div><p className="text-muted-foreground text-xs">Deadline</p><p className="font-medium">{selected.Deadline__c}</p></div>
+                  <div><p className="text-muted-foreground text-xs">Completion</p><p className="font-medium">{Math.round(selected.Percent_Complete__c ?? 0)}%</p></div>
                 </div>
-                {selected.Description__c && (
-                  <div><p className="text-muted-foreground text-xs mb-1">Description</p><p>{selected.Description__c}</p></div>
-                )}
               </div>
             </>
           )}
