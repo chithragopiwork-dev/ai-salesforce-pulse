@@ -70,7 +70,7 @@ function resolveFieldMap(fields: Array<{ name: string; label: string; type: stri
 
   return {
     id:          "Id",
-    name:        find("Name", "Risk_Name__c", "risk name")                          || "Name",
+    name:        find("Risk_ID__c", "Risk_Name__c", "risk name", "Name")             || "Name",
     project:     find("Project__c", "project", "Project_Name__c")                   || "Project__c",
     probability: find("Probability__c", "probability")                               || "Probability__c",
     impact:      find("Impact__c", "impact")                                         || "Impact__c",
@@ -180,7 +180,7 @@ export default function Risks() {
         ))}
       </div>
 
-      {/* Error state */}
+      {/* ── Error state ──────────────────────────────────────────────── */}
       {error && (
         <Card className="border border-red-200 bg-red-50">
           <CardContent className="p-4 text-sm text-red-700">
