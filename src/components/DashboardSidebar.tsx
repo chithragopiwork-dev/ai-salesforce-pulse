@@ -16,9 +16,9 @@ export function DashboardSidebar() {
     <aside className="w-64 min-h-screen bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border shrink-0">
       <div className="p-6 border-b border-sidebar-border">
         <h1 className="text-xl font-bold text-sidebar-primary-foreground tracking-tight">
-          PMO Hub
+          AI PMP
         </h1>
-        <p className="text-[11px] text-sidebar-foreground/50 mt-1">Project Management Office</p>
+        <p className="text-[11px] text-sidebar-foreground/50 mt-1">AI Project Management Platform</p>
       </div>
 
       <nav className="flex-1 p-3 space-y-0.5">
