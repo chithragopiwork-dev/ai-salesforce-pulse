@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSalesforceObject } from "@/hooks/useSalesforceData";
 
-const UPDATE_FIELDS = ["Id", "Name", "Project__c", "Updated_By__c", "Date__c", "Summary__c", "Next_Steps__c", "RAG_Status__c"];
+const UPDATE_FIELDS = ["Id", "Name", "Project__c", "Updated_By__c", "Date__c", "Update_Summary__c", "Next_Steps__c", "RAG__c"];
 
 function ragBadge(rag?: string) {
   if (rag === "Red") return <Badge className="bg-destructive text-destructive-foreground text-[10px]">Red</Badge>;
@@ -23,7 +23,7 @@ export default function Updates() {
     return b.Date__c.localeCompare(a.Date__c);
   });
 
-  const filtered = sorted.filter((u: any) => filterRAG === "all" || u.RAG_Status__c === filterRAG);
+  const filtered = sorted.filter((u: any) => filterRAG === "all" || u.RAG__c === filterRAG);
 
   return (
     <div className="space-y-6">
@@ -52,9 +52,9 @@ export default function Updates() {
                     <p className="font-semibold text-sm">{u.Project__c}</p>
                     <p className="text-xs text-muted-foreground">{u.Date__c} · {u.Updated_By__c}</p>
                   </div>
-                  {ragBadge(u.RAG_Status__c)}
+                  {ragBadge(u.RAG__c)}
                 </div>
-                <p className="text-sm text-foreground/80 mb-2">{u.Summary__c}</p>
+                <p className="text-sm text-foreground/80 mb-2">{u.Update_Summary__c}</p>
                 {u.Next_Steps__c && (
                   <div className="text-xs text-muted-foreground">
                     <span className="font-medium">Next steps:</span> {u.Next_Steps__c}

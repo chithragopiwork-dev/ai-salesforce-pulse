@@ -1,10 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useSalesforceObject } from "@/hooks/useSalesforceData";
 
-const TEAM_FIELDS = ["Id", "Name", "Role__c", "Department__c", "Assigned_Project__c", "Availability__c", "Location__c", "Status__c"];
+const TEAM_FIELDS = ["Id", "Name", "Full_Name__c", "Employee_ID__c", "Role__c", "Department__c", "Assigned_Project__c", "Availability__c", "Location__c", "Status__c", "Daily_Rate_EUR__c"];
 
 export default function Team() {
   const { data: members = [], isLoading } = useSalesforceObject("team_members__c", TEAM_FIELDS, 300_000);
@@ -18,7 +18,7 @@ export default function Team() {
       {onLeave.length > 0 && (
         <div className="rounded-lg border border-warning/30 bg-warning/5 p-4">
           <p className="text-sm font-medium text-warning">🏖️ Currently on Leave</p>
-          <p className="text-xs text-muted-foreground mt-1">{onLeave.map((m: any) => m.Name).join(", ")}</p>
+          <p className="text-xs text-muted-foreground mt-1">{onLeave.map((m: any) => m.Full_Name__c || m.Name).join(", ")}</p>
         </div>
       )}
 
@@ -42,11 +42,11 @@ export default function Team() {
               <TableBody>
                 {members.map((m: any) => (
                   <TableRow key={m.Id}>
-                    <TableCell className="font-medium text-sm">{m.Name}</TableCell>
+                    <TableCell className="font-medium text-sm">{m.Full_Name__c || m.Name}</TableCell>
                     <TableCell className="text-sm">{m.Role__c}</TableCell>
                     <TableCell className="text-sm hidden md:table-cell">{m.Department__c}</TableCell>
                     <TableCell className="text-sm hidden lg:table-cell">{m.Assigned_Project__c}</TableCell>
-                    <TableCell className="text-sm hidden md:table-cell">{m.Availability__c}%</TableCell>
+                    <TableCell className="text-sm hidden md:table-cell">{m.Availability__c != null ? `${m.Availability__c}%` : "-"}</TableCell>
                     <TableCell className="text-sm hidden lg:table-cell">{m.Location__c}</TableCell>
                     <TableCell>
                       <Badge variant={m.Status__c === "Active" ? "default" : "secondary"} className="text-[10px]">

@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useSalesforceObject } from "@/hooks/useSalesforceData";
 
-const TS_FIELDS = ["Id", "Name", "Employee__c", "Project__c", "Week1_Hours__c", "Week2_Hours__c", "Week3_Hours__c", "Week4_Hours__c", "Total_Hours__c", "Budget_Hours__c"];
+const TS_FIELDS = ["Id", "Name", "Employee__c", "Project__c", "Week_1_Hours__c", "Week_2_Hours__c", "Week_3_Hours__c", "Week_4_Hours__c", "Total_Hours__c", "Budget_Hours__c", "Variance__c", "Status__c"];
 
 export default function Timesheets() {
   const { data: timesheets = [], isLoading } = useSalesforceObject("timesheets__c", TS_FIELDS, 600_000);
@@ -36,15 +36,15 @@ export default function Timesheets() {
                 {timesheets.map((t: any) => {
                   const total = t.Total_Hours__c ?? 0;
                   const budget = t.Budget_Hours__c ?? 0;
-                  const variance = budget - total;
+                  const variance = t.Variance__c ?? (budget - total);
                   return (
                     <TableRow key={t.Id}>
                       <TableCell className="font-medium text-sm">{t.Employee__c || t.Name}</TableCell>
                       <TableCell className="text-sm">{t.Project__c}</TableCell>
-                      <TableCell className="text-right text-sm">{t.Week1_Hours__c ?? "-"}</TableCell>
-                      <TableCell className="text-right text-sm">{t.Week2_Hours__c ?? "-"}</TableCell>
-                      <TableCell className="text-right text-sm">{t.Week3_Hours__c ?? "-"}</TableCell>
-                      <TableCell className="text-right text-sm">{t.Week4_Hours__c ?? "-"}</TableCell>
+                      <TableCell className="text-right text-sm">{t.Week_1_Hours__c ?? "-"}</TableCell>
+                      <TableCell className="text-right text-sm">{t.Week_2_Hours__c ?? "-"}</TableCell>
+                      <TableCell className="text-right text-sm">{t.Week_3_Hours__c ?? "-"}</TableCell>
+                      <TableCell className="text-right text-sm">{t.Week_4_Hours__c ?? "-"}</TableCell>
                       <TableCell className="text-right text-sm font-medium">{total}</TableCell>
                       <TableCell className="text-right text-sm">{budget}</TableCell>
                       <TableCell className="text-right">
