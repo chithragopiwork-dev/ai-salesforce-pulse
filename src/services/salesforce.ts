@@ -22,27 +22,15 @@ export interface SalesforceResponse {
   done: boolean;
 }
 
-const PROJECT_FIELDS = [
-  "Id",
-  "Name",
-  "Project_Manager__c",
-  "Status__c",
-  "Priority__c",
-  "Start_Date__c",
-  "End_Date__c",
-  "Budget__c",
-  "Health_Status__c",
-  "Risk_Level__c",
-  "Actual_Cost__c",
-  "Description__c",
-  "CreatedDate",
-].join(",");
+// Note: Only fetch fields that exist in Salesforce. The normalization function
+// will add demo data for fields that don't exist yet.
+const BASIC_FIELDS = "Id,Name";
 
 export async function fetchSalesforceProjects(): Promise<SalesforceProject[]> {
   const { data, error } = await supabase.functions.invoke("salesforce-proxy", {
     body: {
       endpoint: "/services/data/v62.0/query",
-      params: { q: `SELECT ${PROJECT_FIELDS} FROM projects__c` },
+      params: { q: `SELECT ${BASIC_FIELDS} FROM projects__c` },
     },
   });
 
