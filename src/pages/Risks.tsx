@@ -4,16 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertTriangle } from "lucide-react";
 import { useSalesforceObject } from "@/hooks/useSalesforceData";
 
 const RISK_FIELDS = ["Id", "Name", "Project__c", "Risk_Description__c", "Probability__c", "Impact__c", "Risk_Score__c", "Owner__c", "Deadline__c", "Mitigation_Plan__c", "Risk_ID__c"];
 
 function scoreBadge(score?: string) {
   const s = (score ?? "").toLowerCase();
-  if (s === "critical") return <Badge className="bg-destructive text-destructive-foreground text-[10px]">Critical</Badge>;
-  if (s === "high") return <Badge className="bg-warning text-warning-foreground text-[10px]">High</Badge>;
-  if (s === "medium") return <Badge className="bg-rag-amber text-warning-foreground text-[10px]">Medium</Badge>;
-  return <Badge variant="secondary" className="text-[10px]">Low</Badge>;
+  if (s === "critical") return <Badge className="bg-destructive text-destructive-foreground text-[10px] rounded-full">Critical</Badge>;
+  if (s === "high") return <Badge className="bg-warning text-warning-foreground text-[10px] rounded-full">High</Badge>;
+  if (s === "medium") return <Badge className="bg-rag-amber text-warning-foreground text-[10px] rounded-full">Medium</Badge>;
+  return <Badge variant="secondary" className="text-[10px] rounded-full">Low</Badge>;
 }
 
 export default function Risks() {
@@ -36,9 +37,12 @@ export default function Risks() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Risks</h1>
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight">Risks</h1>
+          <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider font-medium">Risk register overview</p>
+        </div>
         <Select value={filterScore} onValueChange={setFilterScore}>
-          <SelectTrigger className="w-36 h-9 text-sm"><SelectValue placeholder="Score" /></SelectTrigger>
+          <SelectTrigger className="w-36 h-9 text-sm rounded-xl"><SelectValue placeholder="Score" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Scores</SelectItem>
             <SelectItem value="Critical">Critical</SelectItem>
@@ -51,16 +55,24 @@ export default function Risks() {
 
       <div className="flex gap-3 flex-wrap">
         {["Critical", "High", "Medium", "Low"].map(s => (
-          <Badge key={s} variant="outline" className="text-xs gap-1.5">
+          <Badge key={s} variant="outline" className="text-xs gap-1.5 rounded-full px-3">
             {s}: <span className="font-bold">{counts[s] ?? 0}</span>
           </Badge>
         ))}
       </div>
 
-      <Card className="shadow-sm">
+      <Card className="shadow-md rounded-2xl">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-12 flex flex-col items-center text-center">
+              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="font-semibold text-lg">No risks found</p>
+              <p className="text-sm text-muted-foreground mt-1">Great news — no risks match your current filter.</p>
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -75,7 +87,7 @@ export default function Risks() {
               </TableHeader>
               <TableBody>
                 {filtered.map((r: any) => (
-                  <TableRow key={r.Id}>
+                  <TableRow key={r.Id} className="hover:bg-muted/30 transition-colors">
                     <TableCell className="text-sm font-mono">{r.Risk_ID__c || r.Name}</TableCell>
                     <TableCell className="text-sm">{r.Project__c}</TableCell>
                     <TableCell className="text-sm hidden lg:table-cell max-w-xs truncate">{r.Risk_Description__c}</TableCell>

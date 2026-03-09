@@ -18,12 +18,12 @@ export function TopBar({ isConnected, isRefetching, onRefresh, lastUpdated, sear
   const today = format(new Date(), "EEEE, MMMM d, yyyy");
 
   return (
-    <header className="h-14 border-b bg-card flex items-center justify-between px-6 sticky top-0 z-20">
+    <header className="h-14 border-b bg-card/80 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-20">
       <div className="flex items-center gap-3">
         <p className="text-sm text-muted-foreground hidden sm:block">{today}</p>
 
         {onRefresh && (
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs" onClick={onRefresh} disabled={isRefetching}>
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs btn-animate rounded-xl" onClick={onRefresh} disabled={isRefetching}>
             <RefreshCw className={cn("h-3.5 w-3.5", isRefetching && "animate-spin")} />
             {isRefetching ? (
               <span className="text-muted-foreground">Refreshing…</span>
@@ -43,11 +43,11 @@ export function TopBar({ isConnected, isRefetching, onRefresh, lastUpdated, sear
             placeholder="Search projects, people, risks…"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9 h-9 text-sm bg-secondary border-0"
+            className="pl-9 h-9 text-sm bg-secondary border-0 rounded-xl"
           />
         </div>
 
-        <Badge variant="outline" className="gap-1.5 text-xs font-normal shrink-0">
+        <Badge variant="outline" className="gap-1.5 text-xs font-normal shrink-0 rounded-full">
           <span className={cn(
             "h-2 w-2 rounded-full shrink-0",
             isConnected ? "bg-success animate-pulse-dot" : "bg-destructive"
@@ -55,8 +55,11 @@ export function TopBar({ isConnected, isRefetching, onRefresh, lastUpdated, sear
           {isConnected ? "Connected" : "Offline"}
         </Badge>
 
-        <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold">
-          PM
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-[hsl(262,52%,47%)] flex items-center justify-center text-primary-foreground text-xs font-semibold shadow-md">
+            PM
+          </div>
+          <span className="text-xs font-medium text-muted-foreground hidden lg:block">Project Manager</span>
         </div>
       </div>
     </header>
