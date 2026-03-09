@@ -4,8 +4,9 @@ import { ProjectsTable } from "@/components/ProjectsTable";
 import { ProjectListPanel } from "@/components/ProjectListPanel";
 import { AIInsightsPanel } from "@/components/AIInsightsPanel";
 import { useProjects } from "@/hooks/useProjects";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Index = () => {
   const { data: projects = [], isLoading, refetch, isRefetching } = useProjects();
