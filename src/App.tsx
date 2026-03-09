@@ -11,7 +11,7 @@ import Timesheets from "./pages/Timesheets";
 import Leave from "./pages/Leave";
 import Risks from "./pages/Risks";
 import Updates from "./pages/Updates";
-import Forecasting from "./pages/Forecasting";
+
 import NotFound from "./pages/NotFound";
 import Describe from "./pages/Describe";
 
