@@ -16,15 +16,9 @@ function KPICard({ title, value, icon: Icon, color, isLoading }: {
         </div>
         <div>
           {isLoading ? (
-            <>
-              <Skeleton className="h-7 w-16 mb-1" />
-              <Skeleton className="h-4 w-24" />
-            </>
+            <><Skeleton className="h-7 w-16 mb-1" /><Skeleton className="h-4 w-24" /></>
           ) : (
-            <>
-              <p className="text-2xl font-bold">{value}</p>
-              <p className="text-xs text-muted-foreground">{title}</p>
-            </>
+            <><p className="text-2xl font-bold">{value}</p><p className="text-xs text-muted-foreground">{title}</p></>
           )}
         </div>
       </CardContent>
@@ -39,21 +33,18 @@ export default function Home() {
 
   return (
     <div className="space-y-6">
-      {/* Greeting banner */}
       <div>
         <h1 className="text-2xl font-bold">{greeting}</h1>
         <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
       </div>
 
-      {/* KPI row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard title="Total Projects" value={stats.total} icon={FolderKanban} color="bg-primary" isLoading={isLoading} />
-        <KPICard title="Active Team Members" value={stats.active} icon={Users} color="bg-success" isLoading={isLoading} />
-        <KPICard title="Critical Risks" value={stats.highRisk} icon={AlertTriangle} color="bg-destructive" isLoading={isLoading} />
+        <KPICard title="Active Projects" value={stats.active} icon={Users} color="bg-success" isLoading={isLoading} />
+        <KPICard title="At Risk (RAG)" value={stats.highRisk} icon={AlertTriangle} color="bg-destructive" isLoading={isLoading} />
         <KPICard title="Deadlines This Month" value={stats.nearingDeadline.length} icon={CalendarClock} color="bg-warning" isLoading={isLoading} />
       </div>
 
-      {/* AI Daily Briefing */}
       <Card className="shadow-sm border-primary/20">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -63,16 +54,12 @@ export default function Home() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-5/6" />
-            </div>
+            <div className="space-y-2"><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-5/6" /></div>
           ) : (
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">•</span>
-                <span>{stats.highRisk} project{stats.highRisk !== 1 ? "s" : ""} flagged as high risk requiring attention.</span>
+                <span>{stats.highRisk} project{stats.highRisk !== 1 ? "s" : ""} flagged as Red/Amber RAG requiring attention.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-warning mt-0.5">•</span>
@@ -87,41 +74,40 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      {/* Smart Alert Banners */}
       {!isLoading && stats.overBudget.length > 0 && (
         <div className="rounded-lg border border-warning/30 bg-warning/5 p-4">
           <p className="text-sm font-medium text-warning">⚠️ Budget Warning</p>
           <p className="text-xs text-muted-foreground mt-1">
-            {stats.overBudget.map(p => p.Name).join(", ")} {stats.overBudget.length === 1 ? "is" : "are"} over budget.
+            {stats.overBudget.map(p => p.Project_Name__c || p.Name).join(", ")} {stats.overBudget.length === 1 ? "is" : "are"} over budget.
           </p>
         </div>
       )}
 
-      {/* Recent Projects */}
       <Card className="shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Recent Projects</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-3">
-              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
-            </div>
+            <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
           ) : (
             <div className="space-y-2">
               {projects.slice(0, 8).map(project => (
                 <div key={project.Id} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div>
-                    <p className="text-sm font-medium">{project.Name}</p>
-                    <p className="text-xs text-muted-foreground">{project.Project_Manager__c}</p>
+                    <p className="text-sm font-medium">{project.Project_Name__c || project.Name}</p>
+                    <p className="text-xs text-muted-foreground">{project.Coordinator__c}</p>
                   </div>
-                  <Badge variant={
-                    project.Status__c === "Active" ? "default" :
-                    project.Status__c === "Completed" ? "secondary" :
-                    "outline"
-                  } className="text-xs">
-                    {project.Status__c}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {project.RAG__c && (
+                      <span className={`h-2.5 w-2.5 rounded-full ${
+                        project.RAG__c === "Red" ? "bg-rag-red" : project.RAG__c === "Amber" ? "bg-rag-amber" : "bg-rag-green"
+                      }`} />
+                    )}
+                    <Badge variant={project.Status__c === "Active" || project.Status__c === "In Progress" ? "default" : project.Status__c === "Completed" ? "secondary" : "outline"} className="text-xs">
+                      {project.Status__c}
+                    </Badge>
+                  </div>
                 </div>
               ))}
             </div>
